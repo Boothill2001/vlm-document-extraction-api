@@ -49,7 +49,7 @@ async def extract_file(
         ext = get_file_extension(file.filename or "")
         use_provider = provider or settings.default_provider
 
-        if ext in (".png", ".jpg", ".jpeg") and use_provider == "gemini":
+        if ext in (".png", ".jpg", ".jpeg") and use_provider in ("gemini", "gpt4"):
             return run_extraction_from_image(
                 str(tmp_path), document_type, use_provider, require_strict_schema
             )

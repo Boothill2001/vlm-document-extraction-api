@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     claude_api_key: str = ""
     deepseek_api_key: str = ""
     gemini_api_key: str = ""
+    gpt4_api_key: str = ""
 
     max_file_size_mb: int = 10
     upload_dir: str = "uploads"

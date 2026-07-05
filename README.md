@@ -13,7 +13,8 @@ flowchart TD
     A[Upload Document] --> B[Detect File Type]
     B --> C{PDF / Image / Text}
     C -->|PDF| D[pdfplumber]
-    C -->|Image| E[Tesseract OCR]
+    C -->|Image + Gemini/GPT-4| V[VLM Vision API]
+    C -->|Image + Other| E[Tesseract OCR]
     C -->|Text| F[Direct Read]
     D --> G[Raw Text]
     E --> G
@@ -23,9 +24,14 @@ flowchart TD
     I -->|Mock| J[Regex Rules]
     I -->|DeepSeek| K[DeepSeek API]
     I -->|Claude| L[Anthropic API]
+    I -->|Gemini| GM[Google Gemini API]
+    I -->|GPT-4| GP[OpenAI GPT-4o API]
     J --> M[Parse JSON]
     K --> M
     L --> M
+    GM --> M
+    GP --> M
+    V --> M
     M --> N[Pydantic Validation]
     N --> O[Business Rules Check]
     O --> P[Confidence Scoring]
@@ -49,10 +55,29 @@ flowchart TD
 
 ![Extraction JSON](assets/demo_extraction_json.png)
 
+### Upload File — DeepSeek Extraction from Invoice Image (OCR → LLM)
+
+![Upload Metrics](assets/upload_deepseek_metrics.png)
+
+### Extracted Fields from Image — Confidence 95%
+
+![Upload Fields](assets/upload_deepseek_fields.png)
+
+### Full JSON Response — DeepSeek Provider + Validation
+
+![Upload JSON](assets/upload_deepseek_json.png)
+
+![Upload JSON Detail](assets/upload_deepseek_json2.png)
+
+### Validation Errors + Human Review Flagging
+
+![Upload Validation](assets/upload_deepseek_validation.png)
+
 ## Features
 
 - **Multi-format input** — PDF, PNG, JPG, TXT file upload + raw text endpoint
-- **Provider system** — Mock (default, no API key), DeepSeek, Claude — pluggable
+- **Provider system** — Mock (default), DeepSeek, Gemini, GPT-4o, Claude — pluggable
+- **Vision extraction** — Gemini/GPT-4 read images directly (no OCR needed)
 - **Pydantic v2 schemas** — Strict structured extraction with type validation
 - **Business rules** — total = subtotal + tax, line item math, date ordering
 - **Confidence scoring** — Field-level + aggregate, auto human-review flagging
@@ -67,7 +92,7 @@ flowchart TD
 | Validation | Pydantic v2 |
 | PDF Parsing | pdfplumber |
 | OCR | pytesseract (optional) |
-| LLM Providers | DeepSeek / Claude / Mock |
+| LLM Providers | DeepSeek / Gemini / GPT-4o / Claude / Mock |
 | HTTP Client | httpx |
 | Testing | pytest |
 | Container | Docker |
@@ -168,6 +193,8 @@ docker compose up --build
 |----------|---------|-------------|
 | `DEFAULT_PROVIDER` | `mock` | Default extraction provider |
 | `DEEPSEEK_API_KEY` | — | DeepSeek API key (optional) |
+| `GEMINI_API_KEY` | — | Google Gemini API key (optional, enables vision) |
+| `GPT4_API_KEY` | — | OpenAI API key (optional, enables vision) |
 | `CLAUDE_API_KEY` | — | Anthropic API key (optional) |
 | `LOG_LEVEL` | `INFO` | Logging level |
 | `MAX_FILE_SIZE_MB` | `10` | Max upload file size |

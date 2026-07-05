@@ -3,6 +3,7 @@ from app.providers.mock_provider import MockProvider
 from app.providers.claude_provider import ClaudeProvider
 from app.providers.openai_provider import DeepSeekProvider
 from app.providers.gemini_provider import GeminiProvider
+from app.providers.gpt4_provider import GPT4Provider
 from app.core.config import get_settings
 
 PROVIDERS: dict[str, type[BaseLLMProvider]] = {
@@ -10,6 +11,7 @@ PROVIDERS: dict[str, type[BaseLLMProvider]] = {
     "claude": ClaudeProvider,
     "deepseek": DeepSeekProvider,
     "gemini": GeminiProvider,
+    "gpt4": GPT4Provider,
 }
 
 

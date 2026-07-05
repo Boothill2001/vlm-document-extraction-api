@@ -79,7 +79,7 @@ Total Amount: $15,950.00"""
         text_input = st.text_area("Paste document text:", value=sample_text, height=350)
     with col_config:
         doc_type = st.selectbox("Document type", ["invoice"])
-        provider = st.selectbox("Provider", ["mock", "gemini", "deepseek", "claude"])
+        provider = st.selectbox("Provider", ["mock", "gpt4", "gemini", "deepseek", "claude"])
         strict = st.checkbox("Strict schema", value=True)
 
     if st.button("🚀 Extract", type="primary", use_container_width=True, key="extract_text"):
@@ -156,7 +156,7 @@ with tab2:
     with col_c1:
         doc_type2 = st.selectbox("Document type", ["invoice"], key="dt2")
     with col_c2:
-        provider2 = st.selectbox("Provider", ["mock", "gemini", "deepseek", "claude"], key="pv2")
+        provider2 = st.selectbox("Provider", ["mock", "gpt4", "gemini", "deepseek", "claude"], key="pv2")
 
     if st.button("🚀 Extract from File", type="primary", use_container_width=True) and uploaded:
         with st.spinner("Uploading and extracting..."):
