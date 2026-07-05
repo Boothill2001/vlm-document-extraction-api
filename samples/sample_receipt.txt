@@ -1,0 +1,19 @@
+RECEIPT
+
+Store: CoffeeWorks Saigon
+Address: 78 Nguyen Hue, District 1, HCMC
+
+Date: 2026-07-01
+Receipt #: RCP-44291
+
+Items:
+- Cappuccino Grande - $4.50
+- Croissant - $3.20
+- Sparkling Water - $2.00
+
+Subtotal: $9.70
+Tax (8%): $0.78
+Total: $10.48
+
+Payment: Visa **** 4821
+Thank you for visiting!

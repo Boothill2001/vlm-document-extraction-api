@@ -1,0 +1,33 @@
+INVOICE
+
+Invoice #: INV-2026-0847
+Date: 2026-06-15
+
+From: TechVision Solutions Ltd.
+123 Innovation Blvd, Suite 400
+Ho Chi Minh City, Vietnam
+
+Bill To: GlobalTrade Corp.
+456 Commerce Street
+Singapore 048580
+
+Payment Terms: Net 30
+Due Date: 2026-07-15
+
+Description of Services:
+
+No.  Item                          Qty   Unit Price   Amount
+1    Cloud Infrastructure Setup     1     $4,500.00    $4,500.00
+2    API Integration Service        3     $1,200.00    $3,600.00
+3    Data Pipeline Development      2     $2,800.00    $5,600.00
+4    Technical Documentation        1     $800.00      $800.00
+
+Subtotal: $14,500.00
+Tax (10%): $1,450.00
+Total Amount: $15,950.00
+
+Payment Method: Bank Transfer
+Bank: Vietcombank
+Account: 0071001234567
+
+Thank you for your business!

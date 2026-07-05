@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hướng dẫn VLM Document Extraction API — Nguyễn Minh Trí</title>
+<style>
+  :root {
+    --bg: #f5f5f8;
+    --surface: #ffffff;
+    --ink: #1a1e2e;
+    --muted: #5c6070;
+    --line: #dddde4;
+    --accent: #4f46e5;
+    --accent-soft: #eef2ff;
+    --accent2: #0d9488;
+    --accent2-soft: #e2f5f0;
+    --code-bg: #1a1e2a;
+    --code-ink: #d8dee9;
+    --radius: 14px;
+    --shadow: 0 2px 12px rgba(26,30,46,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111422;
+      --surface: #1a1e2e;
+      --ink: #e4e4ec;
+      --muted: #9498a8;
+      --line: #2a2e3e;
+      --accent: #818cf8;
+      --accent-soft: #1e1b4b;
+      --accent2: #5eead4;
+      --accent2-soft: #122a26;
+      --code-bg: #0e1018;
+      --code-ink: #cfd6e0;
+      --shadow: 0 2px 12px rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.7; font-size: 16.5px; }
+  .hero {
+    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 55%, #1e1b4b 100%);
+    color: #eef2ff; padding: 64px 24px 56px; text-align: center;
+  }
+  .hero h1 { font-size: clamp(1.8rem, 4.5vw, 3rem); font-weight: 800; letter-spacing: -.02em; }
+  .hero h1 em { font-style: italic; font-family: Georgia, serif; color: #fbbf24; }
+  .hero p.sub { max-width: 720px; margin: 18px auto 0; font-size: 1.1rem; color: #c7d2fe; }
+  .badges { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .badge { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); padding: 6px 16px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+  .hero a.repo { display: inline-block; margin-top: 28px; background: #fbbf24; color: #78350f; font-weight: 700; text-decoration: none; padding: 12px 28px; border-radius: 999px; transition: transform .15s ease; }
+  .hero a.repo:hover { transform: translateY(-2px); }
+  nav { position: sticky; top: 0; z-index: 50; background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: var(--shadow); overflow-x: auto; white-space: nowrap; }
+  nav .inner { max-width: 980px; margin: 0 auto; padding: 0 16px; display: flex; gap: 4px; }
+  nav a { display: inline-block; padding: 13px 14px; color: var(--muted); text-decoration: none; font-size: .88rem; font-weight: 600; border-bottom: 3px solid transparent; }
+  nav a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 20px 80px; }
+  section { margin-top: 56px; scroll-margin-top: 70px; }
+  h2 { font-size: 1.7rem; font-weight: 800; display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  h2 .num { background: var(--accent); color: #fff; width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; font-size: 1.05rem; }
+  h3 { margin: 26px 0 10px; font-size: 1.15rem; }
+  p { margin: 10px 0; }
+  p.lead { font-size: 1.06rem; color: var(--muted); }
+  a { color: var(--accent); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 26px; box-shadow: var(--shadow); margin: 16px 0; }
+  .callout { border-left: 5px solid var(--accent); background: var(--accent-soft); border-radius: 0 var(--radius) var(--radius) 0; padding: 16px 20px; margin: 18px 0; }
+  .callout.teal { border-left-color: var(--accent2); background: var(--accent2-soft); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 20px 0; }
+  .feature { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
+  .feature .icon { font-size: 1.7rem; }
+  .feature h4 { margin: 10px 0 6px; font-size: 1.03rem; }
+  .feature p { font-size: .93rem; color: var(--muted); margin: 0; }
+  pre { background: var(--code-bg); color: var(--code-ink); border-radius: 12px; padding: 18px 20px; overflow-x: auto; font-size: .88rem; line-height: 1.6; margin: 14px 0; font-family: Consolas, monospace; }
+  code.inline { background: var(--accent-soft); color: var(--accent); padding: 2px 7px; border-radius: 6px; font-size: .88em; font-family: Consolas, monospace; }
+  .pipe { display: flex; flex-direction: column; gap: 0; margin: 22px 0; }
+  .pipe-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .pipe-box { flex: 1; min-width: 160px; background: var(--surface); border: 2px solid var(--accent); border-radius: 12px; padding: 14px 18px; text-align: center; }
+  .pipe-box.alt { border-color: var(--accent2); }
+  .pipe-box b { display: block; font-size: .98rem; }
+  .pipe-box span { font-size: .84rem; color: var(--muted); }
+  .pipe-arrow { text-align: center; font-size: 1.5rem; color: var(--accent); padding: 4px 0; }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); font-size: .95rem; }
+  th { background: var(--accent); color: #fff; text-align: left; padding: 12px 16px; font-size: .9rem; }
+  td { padding: 11px 16px; border-top: 1px solid var(--line); vertical-align: top; }
+  tr:nth-child(even) td { background: color-mix(in srgb, var(--surface) 92%, var(--accent) 8%); }
+  td.hl { font-weight: 800; color: var(--accent); }
+  ol.steps { counter-reset: step; list-style: none; margin: 20px 0; }
+  ol.steps > li { position: relative; padding: 4px 0 22px 58px; counter-increment: step; border-left: 2px dashed var(--line); margin-left: 20px; }
+  ol.steps > li:last-child { border-left-color: transparent; }
+  ol.steps > li::before { content: counter(step); position: absolute; left: -21px; top: 0; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; display: grid; place-items: center; }
+  footer { text-align: center; padding: 40px 20px; color: var(--muted); font-size: .9rem; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>VLM Document <em>Extraction</em> API</h1>
+  <p class="sub">Production-style Document AI API &mdash; OCR + LLM/VLM extraction, schema validation, confidence scoring, human-review flagging.</p>
+  <div class="badges">
+    <span class="badge">FastAPI</span>
+    <span class="badge">Pydantic v2</span>
+    <span class="badge">OCR + LLM</span>
+    <span class="badge">Mock Provider</span>
+    <span class="badge">Confidence Score</span>
+    <span class="badge">Docker</span>
+  </div>
+  <a class="repo" href="https://github.com/Boothill2001/vlm-document-extraction-api" target="_blank">GitHub Repository</a>
+</div>
+
+<nav>
+  <div class="inner">
+    <a href="#tongquan">T&#7893;ng quan</a>
+    <a href="#kientruc">Ki&#7871;n tr&uacute;c</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#provider">Providers</a>
+    <a href="#confidence">Confidence</a>
+    <a href="#validation">Validation</a>
+    <a href="#api">API</a>
+    <a href="#cautruc">C&#7845;u tr&uacute;c</a>
+    <a href="#chaythu">Ch&#7841;y th&#7917;</a>
+    <a href="#phongvan">Ph&#7887;ng v&#7845;n</a>
+  </div>
+</nav>
+
+<main>
+
+<section id="tongquan">
+  <h2><span class="num">1</span> T&#7893;ng quan</h2>
+  <p class="lead">Project ch&#7913;ng minh kh&#7843; n&#259;ng x&#7917; l&yacute; <strong>Document AI</strong> &mdash; t&#7915; nh&#7853;n file (PDF/&#7843;nh/text) &#273;&#7871;n extract d&#7919; li&#7879;u c&#7845;u tr&uacute;c, validate, t&iacute;nh confidence, v&agrave; flag c&#7847;n human review.</p>
+
+  <div class="callout">
+    <strong>&#272;i&#7875;m m&#7841;nh:</strong> &#272;a s&#7889; portfolio ch&#7881; c&oacute; chatbot/RAG. Project n&agrave;y target <strong>Document AI / VLM</strong> &mdash; m&#7897;t domain kh&aacute;c, &#273;ang r&#7845;t hot v&#7899;i enterprise (x&#7917; l&yacute; h&oacute;a &#273;&#417;n, receipt, form). Ch&#7913;ng minh b&#7841;n l&agrave;m &#273;&#432;&#7907;c nhi&#7873;u h&#417;n ch&#7881; chat.
+  </div>
+
+  <div class="grid">
+    <div class="feature">
+      <div class="icon">&#128196;</div>
+      <h4>Multi-format Input</h4>
+      <p>PDF, PNG, JPG, TXT upload + raw text endpoint</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#129302;</div>
+      <h4>Provider System</h4>
+      <p>Mock (default), DeepSeek, Claude &mdash; pluggable</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128203;</div>
+      <h4>Pydantic v2 Schema</h4>
+      <p>Strict structured extraction v&#7899;i type validation</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#9989;</div>
+      <h4>Business Rules</h4>
+      <p>total = subtotal + tax, line item math, date check</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128202;</div>
+      <h4>Confidence Scoring</h4>
+      <p>Field-level + aggregate, auto human-review flag</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128230;</div>
+      <h4>Docker-ready</h4>
+      <p>Single command deploy</p>
+    </div>
+  </div>
+</section>
+
+<section id="kientruc">
+  <h2><span class="num">2</span> Ki&#7871;n tr&uacute;c</h2>
+  <div class="pipe">
+    <div class="pipe-row">
+      <div class="pipe-box"><b>Upload Document</b><span>PDF / Image / Text</span></div>
+    </div>
+    <div class="pipe-arrow">&#8595;</div>
+    <div class="pipe-row">
+      <div class="pipe-box"><b>File Detection</b><span>Extension + size check</span></div>
+      <div class="pipe-box"><b>Text Extraction</b><span>pdfplumber / Tesseract / direct</span></div>
+    </div>
+    <div class="pipe-arrow">&#8595;</div>
+    <div class="pipe-row">
+      <div class="pipe-box alt"><b>LLM Provider</b><span>Mock / DeepSeek / Claude</span></div>
+    </div>
+    <div class="pipe-arrow">&#8595;</div>
+    <div class="pipe-row">
+      <div class="pipe-box"><b>JSON Parse</b><span>Pydantic v2 validate</span></div>
+      <div class="pipe-box"><b>Business Rules</b><span>Math + date checks</span></div>
+      <div class="pipe-box"><b>Confidence</b><span>Score + field-level</span></div>
+    </div>
+    <div class="pipe-arrow">&#8595;</div>
+    <div class="pipe-row">
+      <div class="pipe-box alt"><b>Response</b><span>Fields + score + review flag</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="pipeline">
+  <h2><span class="num">3</span> Extraction Pipeline</h2>
+  <div class="card">
+    <ol class="steps">
+      <li><strong>Nh&#7853;n file</strong> &mdash; L&#432;u t&#7841;m, ki&#7875;m tra extension + size limit</li>
+      <li><strong>Extract text</strong> &mdash; PDF d&ugrave;ng pdfplumber, image d&ugrave;ng Tesseract, TXT &#273;&#7885;c tr&#7921;c ti&#7871;p</li>
+      <li><strong>Build prompt</strong> &mdash; T&#7841;o prompt y&ecirc;u c&#7847;u extract c&aacute;c field theo document_type</li>
+      <li><strong>Call provider</strong> &mdash; Mock d&ugrave;ng regex, DeepSeek/Claude d&ugrave;ng API</li>
+      <li><strong>Parse JSON</strong> &mdash; Validate output b&#7857;ng Pydantic schema</li>
+      <li><strong>Business rules</strong> &mdash; Ki&#7875;m tra total = subtotal + tax, line item math</li>
+      <li><strong>Confidence scoring</strong> &mdash; T&iacute;nh &#273;i&#7875;m theo field completeness + validation</li>
+      <li><strong>Human review flag</strong> &mdash; N&#7871;u confidence &lt; 0.75 ho&#7863;c c&oacute; validation errors</li>
+    </ol>
+  </div>
+</section>
+
+<section id="provider">
+  <h2><span class="num">4</span> Provider System</h2>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Provider</th><th>C&aacute;ch ho&#7841;t &#273;&#7897;ng</th><th>C&#7847;n API key?</th></tr>
+      <tr><td class="hl">mock</td><td>Regex/rules tr&ecirc;n text &mdash; demo kh&ocirc;ng c&#7847;n API</td><td>Kh&ocirc;ng</td></tr>
+      <tr><td class="hl">deepseek</td><td>G&#7885;i DeepSeek API v&#7899;i JSON response format</td><td>C&oacute;</td></tr>
+      <tr><td class="hl">claude</td><td>G&#7885;i Anthropic API v&#7899;i structured prompt</td><td>C&oacute;</td></tr>
+    </table>
+  </div>
+  <div class="callout teal">
+    <strong>Thi&#7871;t k&#7871; pluggable:</strong> Th&ecirc;m provider m&#7899;i ch&#7881; c&#7847;n k&#7871; th&#7915;a <code class="inline">BaseLLMProvider</code> v&agrave; implement method <code class="inline">extract()</code>. Kh&ocirc;ng c&#7847;n s&#7917;a code kh&aacute;c.
+  </div>
+</section>
+
+<section id="confidence">
+  <h2><span class="num">5</span> Confidence Scoring</h2>
+  <div class="tablewrap">
+    <table>
+      <tr><th>&#272;i&#7873;u ki&#7879;n</th><th>Penalty</th></tr>
+      <tr><td>Thi&#7871;u required field (invoice_number, date, seller, buyer, total, currency)</td><td>-0.10 / field</td></tr>
+      <tr><td>Kh&ocirc;ng c&oacute; line_items</td><td>-0.08</td></tr>
+      <tr><td>M&#7895;i validation error</td><td>-0.05</td></tr>
+    </table>
+  </div>
+  <div class="callout">
+    <strong>Human review:</strong> N&#7871;u confidence &lt; 0.75 ho&#7863;c c&oacute; b&#7845;t k&#7923; validation error &#8594; <code class="inline">requires_human_review = true</code>. Production system s&#7869; &#273;&#432;a v&agrave;o queue &#273;&#7875; nh&acirc;n vi&ecirc;n ki&#7875;m tra l&#7841;i.
+  </div>
+</section>
+
+<section id="validation">
+  <h2><span class="num">6</span> Business Rules Validation</h2>
+  <div class="card">
+    <p><strong>4 business rules &#273;&#432;&#7907;c ki&#7875;m tra t&#7921; &#273;&#7897;ng:</strong></p>
+    <ol class="steps">
+      <li><strong>Total check</strong> &mdash; total_amount &#8776; subtotal + tax (sai l&#7879;ch &lt; 2%)</li>
+      <li><strong>Line item math</strong> &mdash; amount &#8776; quantity &times; unit_price</li>
+      <li><strong>Date ordering</strong> &mdash; invoice_date kh&ocirc;ng &#273;&#432;&#7907;c sau due_date</li>
+      <li><strong>Positive total</strong> &mdash; total_amount ph&#7843;i d&#432;&#417;ng</li>
+    </ol>
+  </div>
+</section>
+
+<section id="api">
+  <h2><span class="num">7</span> API Endpoints</h2>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Method</th><th>Path</th><th>M&ocirc; t&#7843;</th></tr>
+      <tr><td class="hl">GET</td><td>/health</td><td>Status, version, provider</td></tr>
+      <tr><td class="hl">POST</td><td>/v1/extract</td><td>Upload file &#8594; extract structured data</td></tr>
+      <tr><td class="hl">POST</td><td>/v1/extract/text</td><td>Raw text &#8594; extract (demo nhanh)</td></tr>
+      <tr><td class="hl">POST</td><td>/v1/evaluate</td><td>So s&aacute;nh v&#7899;i ground truth</td></tr>
+    </table>
+  </div>
+  <h3>V&iacute; d&#7909; response</h3>
+  <pre>{
+  "document_id": "a1b2c3d4e5f6",
+  "document_type": "invoice",
+  "extracted_fields": {
+    "invoice_number": "INV-2026-0847",
+    "total_amount": 15950.0, ...
+  },
+  "confidence_score": 1.0,
+  "requires_human_review": false,
+  "processing_time_ms": 130.5,
+  "provider_used": "mock"
+}</pre>
+</section>
+
+<section id="cautruc">
+  <h2><span class="num">8</span> C&#7845;u tr&uacute;c th&#432; m&#7909;c</h2>
+  <div class="card">
+<pre>
+vlm-document-extraction-api/
+&#9500;&#9472; app/
+&#9474;  &#9500;&#9472; main.py              # FastAPI entry
+&#9474;  &#9500;&#9472; api/routes.py        # 4 endpoints
+&#9474;  &#9500;&#9472; core/                # config, logging, exceptions
+&#9474;  &#9500;&#9472; schemas/             # Pydantic models
+&#9474;  &#9500;&#9472; services/            # extraction, validation, confidence
+&#9474;  &#9500;&#9472; providers/           # mock, deepseek, claude
+&#9474;  &#9492;&#9472; eval/                # evaluator + ground truth
+&#9500;&#9472; tests/                   # pytest (8 tests)
+&#9500;&#9472; samples/                 # sample invoice + receipt
+&#9500;&#9472; scripts/run_eval.py      # CLI evaluation
+&#9500;&#9472; Dockerfile
+&#9492;&#9472; requirements.txt
+</pre>
+  </div>
+</section>
+
+<section id="chaythu">
+  <h2><span class="num">9</span> Ch&#7841;y th&#7917; nhanh</h2>
+  <ol class="steps">
+    <li>
+      <strong>Clone v&agrave; c&agrave;i &#273;&#7863;t</strong>
+      <pre>git clone https://github.com/Boothill2001/vlm-document-extraction-api.git
+cd vlm-document-extraction-api
+pip install -r requirements.txt</pre>
+    </li>
+    <li>
+      <strong>Ch&#7841;y server</strong>
+      <pre>uvicorn app.main:app --reload
+# M&#7903; http://localhost:8000/docs &#273;&#7875; d&ugrave;ng Swagger UI</pre>
+    </li>
+    <li>
+      <strong>Ch&#7841;y evaluation</strong>
+      <pre>python scripts/run_eval.py
+# Field accuracy: 100%, Exact match: YES</pre>
+    </li>
+    <li>
+      <strong>Ch&#7841;y tests</strong>
+      <pre>pytest tests/ -v
+# 8 passed</pre>
+    </li>
+  </ol>
+</section>
+
+<section id="phongvan">
+  <h2><span class="num">10</span> C&aacute;ch n&oacute;i khi ph&#7887;ng v&#7845;n</h2>
+  <div class="card">
+    <h3>C&acirc;u tr&#7843; l&#7901;i m&#7851;u</h3>
+    <p><em>"Em build m&#7897;t Document AI API d&#7841;ng production. Nh&#7853;n file PDF/&#7843;nh/text, extract structured data (invoice fields) b&#7857;ng LLM/VLM provider. C&oacute; Pydantic v2 schema validation, business rules check (total = subtotal + tax), confidence scoring t&#7921; &#273;&#7897;ng, v&agrave; flag human review khi confidence th&#7845;p. Provider system pluggable &mdash; mock ch&#7841;y kh&ocirc;ng c&#7847;n API, DeepSeek/Claude s&#7861;n s&agrave;ng plug v&agrave;o. C&oacute; evaluation endpoint so v&#7899;i ground truth, &#273;&#7841;t 100% field accuracy."</em></p>
+  </div>
+  <div class="card">
+    <h3>C&acirc;u h&#7887;i interviewer c&oacute; th&#7875; h&#7887;i</h3>
+    <div class="tablewrap">
+      <table>
+        <tr><th>C&acirc;u h&#7887;i</th><th>G&#7907;i &yacute;</th></tr>
+        <tr><td>T&#7841;i sao c&oacute; mock provider?</td><td>&#272;&#7875; demo ch&#7841;y &#273;&#432;&#7907;c ngay kh&ocirc;ng c&#7847;n API key. Interviewer c&oacute; th&#7875; test tr&ecirc;n m&aacute;y m&igrave;nh 30 gi&acirc;y. Production d&ugrave;ng DeepSeek/Claude th&#7853;t.</td></tr>
+        <tr><td>Confidence scoring ho&#7841;t &#273;&#7897;ng th&#7871; n&agrave;o?</td><td>B&#7855;t &#273;&#7847;u 1.0, tr&#7915; 0.10 m&#7895;i required field thi&#7871;u, tr&#7915; 0.05 m&#7895;i validation error. D&#432;&#7899;i 0.75 ho&#7863;c c&oacute; error &#8594; flag human review.</td></tr>
+        <tr><td>N&#7871;u scale production th&igrave; thay &#273;&#7893;i g&igrave;?</td><td>Async queue (Celery), PostgreSQL log, S3 storage, Grafana monitoring, provider fallback, PII encryption.</td></tr>
+        <tr><td>Sao kh&ocirc;ng d&ugrave;ng LLM th&#7853;t cho mock?</td><td>Chi ph&iacute; + dependency. Mock ch&#7913;ng minh pipeline ho&#7841;t &#273;&#7897;ng &#273;&uacute;ng. Th&#7853;t ch&#7881; c&#7847;n set API key l&agrave; chuy&#7875;n.</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p><strong>Nguy&#7877;n Minh Tr&iacute;</strong> &mdash; Senior AI Engineer</p>
+  <p>minhtri.cm2001@gmail.com &middot; <a href="https://github.com/Boothill2001">GitHub</a></p>
+</footer>
+
+</body>
+</html>
