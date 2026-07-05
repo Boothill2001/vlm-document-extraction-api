@@ -35,6 +35,20 @@ flowchart TD
     R --> S
 ```
 
+## Demo Screenshots
+
+### Extraction Result — Extracted Fields + Confidence Scoring
+
+![Extraction Fields](assets/demo_extraction_fields.png)
+
+### Extraction Result — Line Items + JSON Response
+
+![Extraction Items](assets/demo_extraction_items.png)
+
+### Full JSON Response — Field Confidences + Processing Time
+
+![Extraction JSON](assets/demo_extraction_json.png)
+
 ## Features
 
 - **Multi-format input** — PDF, PNG, JPG, TXT file upload + raw text endpoint
