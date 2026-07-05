@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     default_provider: str = "mock"
     claude_api_key: str = ""
     deepseek_api_key: str = ""
+    gemini_api_key: str = ""
 
     max_file_size_mb: int = 10
     upload_dir: str = "uploads"
@@ -22,4 +23,4 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    return Settings(_env_file=".env")

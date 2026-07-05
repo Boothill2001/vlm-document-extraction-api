@@ -49,6 +49,7 @@ def _load_image_ocr(path: Path) -> str:
         )
 
     try:
+        pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
         image = Image.open(path)
         text = pytesseract.image_to_string(image)
         if not text.strip():

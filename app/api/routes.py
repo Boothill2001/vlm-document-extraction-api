@@ -1,14 +1,13 @@
-import os
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, File, UploadFile, Form, Query
+from fastapi import APIRouter, File, UploadFile, Form
 from app.core.config import get_settings
 from app.core.exceptions import UnsupportedFileError, FileTooLargeError
 from app.schemas.extraction import TextExtractionRequest, ExtractionResponse, EvaluationResult
-from app.services.extraction_service import run_extraction
+from app.services.extraction_service import run_extraction, run_extraction_from_image
 from app.services.ocr_service import extract_text
-from app.utils.file_utils import is_supported_file
+from app.utils.file_utils import is_supported_file, get_file_extension
 from app.eval.evaluator import run_evaluation
 
 router = APIRouter()
@@ -47,8 +46,16 @@ async def extract_file(
 
     try:
         tmp_path.write_bytes(content)
-        text = extract_text(str(tmp_path))
-        return run_extraction(text, document_type, provider, require_strict_schema)
+        ext = get_file_extension(file.filename or "")
+        use_provider = provider or settings.default_provider
+
+        if ext in (".png", ".jpg", ".jpeg") and use_provider == "gemini":
+            return run_extraction_from_image(
+                str(tmp_path), document_type, use_provider, require_strict_schema
+            )
+        else:
+            text = extract_text(str(tmp_path))
+            return run_extraction(text, document_type, use_provider, require_strict_schema)
     finally:
         if tmp_path.exists():
             tmp_path.unlink()

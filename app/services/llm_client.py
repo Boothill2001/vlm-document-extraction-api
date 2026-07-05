@@ -2,12 +2,14 @@ from app.providers.base import BaseLLMProvider
 from app.providers.mock_provider import MockProvider
 from app.providers.claude_provider import ClaudeProvider
 from app.providers.openai_provider import DeepSeekProvider
+from app.providers.gemini_provider import GeminiProvider
 from app.core.config import get_settings
 
 PROVIDERS: dict[str, type[BaseLLMProvider]] = {
     "mock": MockProvider,
     "claude": ClaudeProvider,
     "deepseek": DeepSeekProvider,
+    "gemini": GeminiProvider,
 }
 
 

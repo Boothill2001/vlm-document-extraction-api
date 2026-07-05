@@ -79,7 +79,7 @@ Total Amount: $15,950.00"""
         text_input = st.text_area("Paste document text:", value=sample_text, height=350)
     with col_config:
         doc_type = st.selectbox("Document type", ["invoice"])
-        provider = st.selectbox("Provider", ["mock", "deepseek", "claude"])
+        provider = st.selectbox("Provider", ["mock", "gemini", "deepseek", "claude"])
         strict = st.checkbox("Strict schema", value=True)
 
     if st.button("🚀 Extract", type="primary", use_container_width=True, key="extract_text"):
@@ -156,7 +156,7 @@ with tab2:
     with col_c1:
         doc_type2 = st.selectbox("Document type", ["invoice"], key="dt2")
     with col_c2:
-        provider2 = st.selectbox("Provider", ["mock", "deepseek", "claude"], key="pv2")
+        provider2 = st.selectbox("Provider", ["mock", "gemini", "deepseek", "claude"], key="pv2")
 
     if st.button("🚀 Extract from File", type="primary", use_container_width=True) and uploaded:
         with st.spinner("Uploading and extracting..."):
@@ -168,11 +168,11 @@ with tab2:
                     data={"document_type": doc_type2, "provider": provider2, "require_strict_schema": "true"},
                     timeout=30,
                 )
-                data = resp.json()
 
                 if resp.status_code != 200:
-                    st.error(f"Error: {data.get('detail', resp.text)}")
+                    st.error(f"Error ({resp.status_code}): {resp.text}")
                 else:
+                    data = resp.json()
                     m1, m2, m3, m4 = st.columns(4)
                     m1.metric("Confidence", f"{data['confidence_score']:.0%}")
                     m2.metric("Processing Time", f"{data['processing_time_ms']:.0f}ms")
@@ -181,9 +181,25 @@ with tab2:
 
                     st.markdown("---")
                     st.markdown("#### Extracted Fields")
-                    st.json(data["extracted_fields"])
+                    fields = data["extracted_fields"]
+                    confidences = data.get("field_confidences", {})
+                    for field, value in fields.items():
+                        if field == "line_items":
+                            continue
+                        conf = confidences.get(field, 0)
+                        icon = "✅" if conf >= 1.0 else "⚠️" if conf > 0 else "❌"
+                        css = "field-ok" if conf >= 1.0 else "field-miss"
+                        display_val = value if value is not None else "—"
+                        st.markdown(
+                            f'<div class="field-row {css}">{icon} <strong>{field}:</strong> {display_val}</div>',
+                            unsafe_allow_html=True
+                        )
+                    items = fields.get("line_items", [])
+                    if items:
+                        st.markdown("#### Line Items")
+                        st.dataframe(items, use_container_width=True)
 
-                    st.markdown("#### Full Response")
+                    st.markdown("#### Full JSON Response")
                     st.json(data)
 
             except httpx.ConnectError:
